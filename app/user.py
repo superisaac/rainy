@@ -35,7 +35,6 @@ class Timeline:
         else:
             user = reactor.user
         return [timeline.get_dict() for timeline, user in user.follow_timeline()]
-
 class UserTimeline:
     @require_login
     def handle_GET(self, reactor, user_id=None):
