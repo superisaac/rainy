@@ -1,0 +1,2 @@
+A miniblog api service program that stores data using couchdb instead of relational databases. front end is in python wsgi
+
