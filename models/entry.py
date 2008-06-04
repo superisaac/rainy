@@ -5,4 +5,4 @@ class Entry(Model):
     owner_id = ScalaField(null=False)
     content = ScalaField()
     created_time = DateTimeField()
-    
+    mimetype = ScalaField(default="text/plain")
