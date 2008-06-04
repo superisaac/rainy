@@ -1,0 +1,12 @@
+#!/bin/sh
+
+cat > /tmp/shellee.py <<EOF
+import sys
+sys.path.insert(0, ".")
+from lib.couchkit import *
+from models import *
+
+EOF
+
+python -i /tmp/shellee.py
+
