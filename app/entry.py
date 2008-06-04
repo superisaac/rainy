@@ -1,4 +1,4 @@
-from lib.httputil import require_login, AppError, Forbidden
+from lib.httputil import require_login, AppError, Forbidden, HttpNotFound
 from lib.couchkit import ServerError
 from lib.util import require_login, force_unicode, ok
 from models import User, Entry
@@ -6,7 +6,7 @@ from models import User, Entry
 class EntryInfo:
     @require_login
     def handle_GET(self, reactor, entry_id):
-        return Entry.get(entry_id).get_dict()
+        return Entry.get(entry_id, exc_class=HttpNotFound).get_dict()
 
 class EntryDelete:
     @require_login

@@ -1,6 +1,5 @@
 import time
 from dbwrapper import Server, ServerError
-from lib.httputil import HttpNotFound
 
 class Field(object):
     def __init__(self, null=True):
@@ -47,13 +46,15 @@ class Model(object):
         return [cls.get(item['id']) for item in db.docs()['rows']]
 
     @classmethod
-    def get(cls, id):
+    def get(cls, id, exc_class=None):
         server = Server()
         db = server[cls.db_name]
         try:
             user_dict = db[id]
         except ServerError:
-            raise HttpNotFound()
+            if exc_class:
+                raise exc_class()
+            raise
         obj = cls(**user_dict)
         return obj
     

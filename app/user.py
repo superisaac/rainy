@@ -1,4 +1,4 @@
-from lib.httputil import require_login, AppError
+from lib.httputil import require_login, AppError, HttpNotFound
 from lib.couchkit import ServerError
 from lib.util import require_login, force_unicode, ok
 from models import User
@@ -18,7 +18,7 @@ class UserInfo:
     @require_login
     def handle_GET(self, reactor, user_id=None):
         if user_id:
-            user = User.get(user_id)
+            user = User.get(user_id, exc_class=HttpNotFound)
         else:
             user = reactor.user
         return {'id': user.id,
@@ -31,7 +31,7 @@ class Timeline:
     @require_login
     def handle_GET(self, reactor, user_id=None):
         if user_id:
-            user = User.get(user_id)
+            user = User.get(user_id, exc_class=HttpNotFound)
         else:
             user = reactor.user
         return [timeline.get_dict() for timeline, user in user.follow_timeline()]
@@ -40,7 +40,7 @@ class UserTimeline:
     @require_login
     def handle_GET(self, reactor, user_id=None):
         if user_id:
-            user = User.get(user_id)
+            user = User.get(user_id, exc_class=HttpNotFound)
         else:
             user = reactor.user
         return [timeline.get_dict() for timeline, user in user.user_timeline()]
