@@ -1,2 +1,21 @@
 A miniblog api service program that stores data using couchdb instead of relational databases. front end is in python wsgi
 
+= Set up =
+== Dependancies ==
+ * python
+ * erlang language
+ * couchdb, some old version may not work, I installed it from svn trunk
+ * simplejson
+ * eventlet, optional, but necessary if you want to run it as standalone server
+ * flup, optional, only required when you run it as a fcgi daemon
+
+== Run it == 
+ * start couchdb 
+{{{
+ % couchdb -b  
+}}}
+ * run api server
+{{{
+ % cd $SERVER_INSTALL_DIR
+ % ./httpd.py
+}}}
