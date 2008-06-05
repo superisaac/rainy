@@ -1,5 +1,6 @@
  * Find timeline by time range(page)
- * revision functions for model
+ * Messages
+ * Revision functions for model
  * Index support, one model several db
  * Simple frontend, using django, php, ... 
  * Support more mimetype, images, video, voice, ...
