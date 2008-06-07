@@ -3,7 +3,7 @@ from dbwrapper import Server, ServerError
 
 class Index(object):
     def __init__(self, model, field):
-        self.db_name = 'idx' + model.db_name +  field.fieldname
+        self.db_name = 'idx--%s--%s' % (model.db_name, field.fieldname)
         server = Server()
         if not server[self.db_name]:
             server.create_db(self.db_name)
@@ -13,25 +13,25 @@ class Index(object):
         return server[self.db_name]
 
     def get_ids(self, v):
-        model_ids = self.db()["%s" % v]
+        model_ids = self.db()["%s" % v]['store_ids']
         return model_ids
 
     def set(self, v, model_id):
         db = self.db()
         try:
-            db.set(v, [model_id])
+            db.create_doc({'store_ids': [model_id], '_id': v})
         except ServerError, e:
             print e.status, e.msg
             # Already exits
-            model_ids = set(db.fetch(v, []))
+            model_ids = set(db.fetch(v, [])['store_ids'])
             model_ids.add(model_id)
-            db[v] = list(model_ids)        
+            db[v] = {'store_ids': list(model_ids)}
 
     def delete(self, v, model_id):
         model_ids = set(self.get_ids(v))
         if model_id in model_ids:
             model_ids.remove(model_id)
-            self.db()[v] = list(model_ids)
+            self.db()[v] = {'store_ids': list(model_ids)}
 
     def change(self, old_v, new_v, model_id):
         if old_v:
@@ -174,8 +174,8 @@ class Model(object):
             res = db.create_doc(self.get_dict())
             self.id = res['id']
 
-        #for index, old_value, new_value in self.changed_indices:
-        #    index.change(old_value, new_value, self.id)
+        for index, old_value, new_value in self.changed_indices:
+            index.change(old_value, new_value, self.id)
         self.changed_indices = []
         self.tainted = False
 

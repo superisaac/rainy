@@ -6,6 +6,7 @@ sys.path.insert(0, ".")
 from lib.couchkit import *
 from models import *
 
+server = Server()
 EOF
 
 python -i /tmp/shellee.py

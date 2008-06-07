@@ -12,7 +12,6 @@ reset_db('user')
 reset_db('user-name')
 reset_db('entry')
 reset_db('idx--user--email')
-reset_db('idxuseremail')
 
     
 
