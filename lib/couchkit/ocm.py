@@ -1,5 +1,6 @@
 import time
 from dbwrapper import Server, ServerError
+from urllib import quote
 
 class Index(object):
     def __init__(self, model, field):
@@ -18,14 +19,14 @@ class Index(object):
 
     def set(self, v, model_id):
         db = self.db()
-        try:
-            db.create_doc({'store_ids': [model_id], '_id': v})
-        except ServerError, e:
-            print e.status, e.msg
+        obj = db.fetch(v)
+        if obj:
             # Already exits
-            model_ids = set(db.fetch(v, [])['store_ids'])
+            model_ids = set(obj['store_ids'])
             model_ids.add(model_id)
             db[v] = {'store_ids': list(model_ids)}
+        else:
+            db[v] = {'store_ids': [model_id], '_id': quote(v)}
 
     def delete(self, v, model_id):
         model_ids = set(self.get_ids(v))
@@ -59,6 +60,10 @@ class Field(object):
     def default_value(self):
         return None
 
+    @classmethod
+    def get_by_index(cls, **kw):
+        pass
+    
     def __get__(self, obj, type=None):
         return getattr(obj, 'proxied_%s' % self.fieldname)
     
