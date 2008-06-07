@@ -9,7 +9,7 @@ class UserLoginException(Exception):
     pass
 
 class User(Model):
-    email = ScalaField(null=False)
+    email = ScalaField(null=False, index=True)
     username = ScalaField()
     follows = ListField()
     followed_by  = ListField()

@@ -1,4 +1,5 @@
 import httpc as http
+from urllib import quote
 import simplejson
 import settings
 
@@ -45,6 +46,7 @@ class Server(object):
             return simplejson.dumps(obj)
         
     def get(self, url='/'):
+        url = quote(url)
         try:
             t = http.get_(self.server_url + url,
                            headers={'Accept':'Application/json'},
@@ -57,6 +59,7 @@ class Server(object):
         return obj
 
     def delete(self, url='/'):
+        url = quote(url)
         try:
             t = http.delete_(self.server_url + url)
         except http.ConnectionError, e:
@@ -65,6 +68,7 @@ class Server(object):
         return self.handle_response(*t)
 
     def post(self, url, obj):
+        url = quote(url)
         data = self.dumps(obj)
         try:
             t = http.post_(self.server_url + url,
@@ -78,6 +82,7 @@ class Server(object):
         return self.handle_response(*t)
 
     def put(self, url, obj):
+        url = quote(url)
         data = self.dumps(obj)
         try:
             t = http.put_(self.server_url + url,
@@ -145,11 +150,11 @@ class Database:
         self.set_cache(docid, obj)
         return obj
 
-    def fetch(self, docid):
+    def fetch(self, docid, absent=None):
         try:
             obj = self.server.get('/%s/%s/' % (self.dbname, docid))
         except ServerError:
-            return None
+            return absent
         self.set_cache(docid, obj)
         return obj
         
