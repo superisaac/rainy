@@ -32,8 +32,25 @@ class ListField(Field):
 class DateTimeField(Field):
     def default_value(self):
         return time.time()
+
+class ModelMeta(type):
+    def __new__(meta, clsname, bases, classdict):
+        cls = type.__new__(meta, clsname, bases, classdict)
+        if clsname == 'Model':
+            return cls
+        cls.db_name = clsname.lower()
+        cls.fields = []
+        for field, v in vars(cls).items():
+            if isinstance(v, Field):
+                v.fieldname = field
+                cls.fields.append(v)
+        server = Server()
+        if not server[cls.db_name]:
+            server.create_db(cls.db_name)
+        return cls
     
 class Model(object):
+    __metaclass__ = ModelMeta
     @classmethod
     def create(cls, **kwargs):
         model_obj = cls(**kwargs)
@@ -58,17 +75,6 @@ class Model(object):
         obj = cls(**user_dict)
         return obj
     
-    @classmethod
-    def initialize(cls):
-        cls.db_name = cls.__name__.lower()
-        cls.fields = []
-        for field, v in vars(cls).items():
-            if isinstance(v, Field):
-                v.fieldname = field
-                cls.fields.append(v)
-        server = Server()
-        if not server[cls.db_name]:
-            server.create_db(cls.db_name)
 
     def __eq__(self, other):
         return self.__class__ == other.__class__ and \
