@@ -1,8 +1,15 @@
+# ocm.py  - Object-Couchdb mapping
+# Author: Zeng Ke
+
 import time
 from dbwrapper import Server, ServerError
 from urllib import quote
 
 class Index(object):
+    """ Couchdb indexes
+    It is indeed a new database whose key is the indexed value
+    and value is a list of ids of master objects.
+    """
     def __init__(self, model, field):
         self.db_name = 'idx--%s--%s' % (model.db_name, field.fieldname)
         server = Server()
@@ -41,6 +48,10 @@ class Index(object):
             self.set(new_v, model_id)        
 
 class Field(object):
+    """ Field that defines the schema of a DB
+    Much like the field of relation db ORMs
+    A proxy of a object's attribute 
+    """
     def __init__(self, null=True):
         self.null = null # Seems null is not used currently
         self._fieldname = None
@@ -65,19 +76,21 @@ class Field(object):
         pass
     
     def __get__(self, obj, type=None):
-        return getattr(obj, 'proxied_%s' % self.fieldname)
+        return getattr(obj, '_proxied_%s' % self.fieldname)
     
     def __set__(self, obj, value):
         obj.tainted = True
         if self.index:
-            old_value = getattr(obj, 'proxied_%s' % self.fieldname, None)
+            old_value = getattr(obj, '_proxied_%s' % self.fieldname, None)
             obj.changed_indices.append((self.index, old_value, value))
-        setattr(obj, 'proxied_%s' % self.fieldname, value)
+        setattr(obj, '_proxied_%s' % self.fieldname, value)
 
     def __del__(self, obj):
         pass
 
 class ScalaField(Field):
+    """ Elementry data type: String and number
+    """
     def __init__(self, default=None, null=True, index=False):
         super(ScalaField, self).__init__(null)
         self.default = default
@@ -87,15 +100,21 @@ class ScalaField(Field):
         return self.default
 
 class ListField(Field):
+    """ This field is an array 
+    """
     def default_value(self):
         return []
 
 class DateTimeField(Field):
+    """ Datetime format
+    """
     def default_value(self):
         return time.time()
 
-        
 class ModelMeta(type):
+    """ The meta class of Model
+    Do some registering of Model classes
+    """
     def __new__(meta, clsname, bases, classdict):
         cls = type.__new__(meta, clsname, bases, classdict)
         if clsname == 'Model':
@@ -104,16 +123,28 @@ class ModelMeta(type):
         return cls
 
 class Model(object):
+    """ The model of couchdb
+    A model defines the schema of a database using its fields
+    Customed model can be defined by subclassing the Model class.
+    """
     __metaclass__ = ModelMeta
 
     @classmethod
     def indices(cls):
+        """ Generate all indices of a model 
+        """
         for field in cls.fields.itervalues():
             if field.index:
                 yield field, field.index
 
     @classmethod
     def initialize(cls):
+        """ Initialize the necessary stuffs of a model class
+        Including:
+            * Gathering fields and indices
+            * Touch db if not exist.
+        Called in ModelMeta's __new__
+        """
         cls.db_name = cls.__name__.lower()
         cls.fields = []
         for fieldname, v in vars(cls).items():
@@ -127,11 +158,14 @@ class Model(object):
     
     @classmethod
     def create(cls, **kwargs):
+        """ Create a new object
+        """
         model_obj = cls(**kwargs)
         return model_obj
+    
     @classmethod
     def db(cls):
-        server = Server()
+
         return server[cls.db_name]
 
     @classmethod
@@ -194,6 +228,8 @@ class Model(object):
                 index.delete(v, self.id)
         
     def get_dict(self):
+        """ Get the dict representation of an object's fields
+        """
         info_dict = {}
         for field in self.fields:
             info_dict[field.fieldname] = getattr(self, field.fieldname)
