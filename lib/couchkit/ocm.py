@@ -165,7 +165,7 @@ class Model(object):
     
     @classmethod
     def db(cls):
-
+        server = Server()
         return server[cls.db_name]
 
     @classmethod

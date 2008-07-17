@@ -1,0 +1,5 @@
+package rainyapi;
+
+message Entry {
+	required string content = 1;
+}

@@ -30,11 +30,10 @@ import os.path
 import os
 import time
 import urlparse
-
+import settings
 
 _old_HTTPConnection = httplib.HTTPConnection
 _old_HTTPSConnection = httplib.HTTPSConnection
-
 
 HTTP_TIME_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
 to_http_time = lambda t: time.strftime(HTTP_TIME_FORMAT, time.gmtime(t))
@@ -213,7 +212,9 @@ class _Params(object):
         self.orig_body = body
         self.aux = aux
 
-
+        if settings.DEBUG:
+            print '~', self.method, self.url
+            
 class _LocalParams(_Params):
     def __init__(self, params, **kwargs):
         self._delegate = params

@@ -11,14 +11,13 @@ URLMAP = (
     (r'^/$', 'Hello'),
     )
 
+DEBUG = False
 # UTF-8 by default
 ENCODING = 'utf8'
-
 # Connection url for the back end
 COUCHDB_SERVER = 'http://localhost:5984'
 
 # The port server daemon listening on
 SERVER_PORT = 8001
-
 # Realm token used in Basic HTTP Authentication
 APP_REALM = 'RainyAPI'

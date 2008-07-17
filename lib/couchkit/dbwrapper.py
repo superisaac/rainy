@@ -1,5 +1,5 @@
 import httpc as http
-from urllib import quote
+from urllib import quote, urlencode
 import simplejson
 import settings
 
@@ -45,8 +45,11 @@ class Server(object):
         else:
             return simplejson.dumps(obj)
         
-    def get(self, url='/'):
+    def get(self, url='/', **params):
+        param_str = urlencode(params)
         url = quote(url)
+        if param_str:
+            url += '?' + param_str
         try:
             t = http.get_(self.server_url + url,
                            headers={'Accept':'Application/json'},
@@ -58,8 +61,11 @@ class Server(object):
             obj = dict((k.encode(settings.ENCODING), v) for k, v in obj.iteritems())
         return obj
 
-    def delete(self, url='/'):
+    def delete(self, url='/', **params):
+        param_str = urlencode(params)
         url = quote(url)
+        if param_str:
+            url += '?' + param_str
         try:
             t = http.delete_(self.server_url + url)
         except http.ConnectionError, e:
@@ -122,7 +128,7 @@ class Database:
         self.server = server
         self.dbname = dbname
         self._cache = {}
-        self.enable_cache = True
+        self.enable_cache = False
         
     def del_cache(self, docid):
         if self.enable_cache:
@@ -145,11 +151,16 @@ class Database:
     def docs(self):
         return self.server.get('/%s/_all_docs' % self.dbname)
 
-    def get(self, docid):
-        obj = self.server.get('/%s/%s/' % (self.dbname, docid))
+    def get(self, docid, rev=None):
+        params = rev and dict(rev=rev) or {}
+        obj = self.server.get('/%s/%s' % (self.dbname, docid), **params)
         self.set_cache(docid, obj)
         return obj
 
+    def revs(self, docid):
+        obj = self.server.get('/%s/%s' % (self.dbname, docid), revs='true')
+        return obj['_revs']
+        
     def fetch(self, docid, absent=None):
         try:
             obj = self.server.get('/%s/%s/' % (self.dbname, docid))
@@ -187,7 +198,7 @@ class Database:
         doc = self.get(docid)
         rev = doc['_rev']
         self.del_cache(docid)
-        return self.server.delete('/%s/%s/?rev=%s' % (self.dbname, docid, rev))
+        return self.server.delete('/%s/%s' % (self.dbname, docid), rev=rev)
 
     def query(self, map_func, reduce_func=""):
         "query temporary view"
