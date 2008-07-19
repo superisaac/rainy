@@ -152,6 +152,9 @@ class Database:
         return self.server.get('/%s/_all_docs' % self.dbname)
 
     def get(self, docid, rev=None):
+        if isinstance(rev, (int, long)):
+            revs = self.revs(docid)
+            rev = revs[rev] # Get index
         params = rev and dict(rev=rev) or {}
         obj = self.server.get('/%s/%s' % (self.dbname, docid), **params)
         self.set_cache(docid, obj)

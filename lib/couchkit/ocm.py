@@ -174,10 +174,10 @@ class Model(object):
         return [cls.get(item['id']) for item in db.docs()['rows']]
 
     @classmethod
-    def get(cls, id, exc_class=None):
+    def get(cls, id, rev=None, exc_class=None):
         db = cls.db()
         try:
-            user_dict = db[id]
+            user_dict = db.get(id, rev=rev)
         except ServerError:
             if exc_class:
                 raise exc_class()
@@ -185,6 +185,8 @@ class Model(object):
         obj = cls(**user_dict)
         return obj
 
+    def revs(self):
+        return self.db().revs(self.id)
     @classmethod
     def get_by_ids(cls, *ids):
         db = cls.db()
@@ -244,6 +246,7 @@ class Model(object):
                     field.fieldname,
                     kwargs.get(field.fieldname,
                                field.default_value()))
+        self._rev = kwargs.get('_rev')
         if '_id' in kwargs:
             self.id = kwargs['_id']
             self.tainted = False
